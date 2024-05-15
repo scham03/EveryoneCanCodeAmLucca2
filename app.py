@@ -1,8 +1,8 @@
 
 ###############################################################################
 ## Sprint 3: Database Integration
-## Feature 2: Persist To-Do List
-## User Story 2: Load To-Do List
+## Feature 1: Add Voice
+## User Story 1: Add Voice to Text
 ###############################################################################
 import os
 from flask import Flask, render_template, request, redirect, url_for, g
@@ -27,7 +27,7 @@ def load_data_to_g():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", todo_list=g.todos)
 
 @app.route("/add", methods=["POST"])
 def add_todo():
@@ -43,7 +43,7 @@ def add_todo():
     return redirect(url_for('index'))
 
 # Delete a ToDo
-@app.route('/remove/<int:id>', methods=['GET', "POST"])
+@app.route('/remove/<int:id>', methods=["POST"])
 def remove_todo(id):
     db.session.delete(Todo.query.filter_by(id=id).first())
     db.session.commit()
