@@ -5,10 +5,7 @@ from services import Service
 from openai import AzureOpenAI
 from dotenv import dotenv_values
 
-
-
 class RecommendationEngine:
-    
     def __init__(self):
         config = dotenv_values(".env")
 
@@ -46,7 +43,7 @@ class RecommendationEngine:
                         {"role":"user","content":prompt},]
 
         response = self.client.chat.completions.create(
-                        model= self.deployment,
+                        model=self.deployment,
                         messages = message_text,
                         temperature=0.14,
                         max_tokens=800,
@@ -77,4 +74,3 @@ async def test_recommendation_engine():
 
 if __name__ == "__main__":
     asyncio.run(test_recommendation_engine())
-    
