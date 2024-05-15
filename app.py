@@ -1,12 +1,13 @@
 
 ###############################################################################
-## Sprint 3: Database Integration
-## Feature 1: Add Voice
-## User Story 1: Add Voice to Text
-###############################################################################
+## Sprint 5: Advanced AI Recommendations
+## Feature 1: Get Gen AI Recommendation 
+## User Story 1: Get Gen AI Recommendation 
+############################################################################
 import os
 from flask import Flask, render_template, request, redirect, url_for, g
 from database import db, Todo
+from recommendation_engine import RecommendationEngine
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))   # Get the directory of the this file
@@ -27,7 +28,7 @@ def load_data_to_g():
 
 @app.route("/")
 def index():
-    return render_template("index.html", todo_list=g.todos)
+    return render_template("index.html")
 
 @app.route("/add", methods=["POST"])
 def add_todo():
@@ -48,6 +49,16 @@ def remove_todo(id):
     db.session.delete(Todo.query.filter_by(id=id).first())
     db.session.commit()
     return redirect(url_for('index'))
+
+# Show AI recommendations
+@app.route('/recommend/<int:id>', methods=['GET'])
+async def recommend(id):
+    recommendation_engine = RecommendationEngine()
+    g.todo = db.session.query(Todo).filter_by(id=id).first()
+    g.todo.recommendations = await recommendation_engine.get_recommendations(g.todo.name)
+    
+    return render_template('index.html')
+
 
 if __name__ == "__main__":
     app.run(debug=True)
