@@ -1,4 +1,3 @@
-
 import json
 import asyncio
 import semantic_kernel as sk
