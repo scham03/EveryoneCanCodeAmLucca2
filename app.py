@@ -1,36 +1,53 @@
+
 ###############################################################################
-## Sprint 1: Basic Application
-## Feature 1: Create and Manage a To-Do List
-## User Story 1: Add Item to List
+## Sprint 3: Database Integration
+## Feature 2: Persist To-Do List
+## User Story 2: Load To-Do List
 ###############################################################################
+import os
+from flask import Flask, render_template, request, redirect, url_for, g
+from database import db, Todo
 
-todo_list = []
+app = Flask(__name__)
+basedir = os.path.abspath(os.path.dirname(__file__))   # Get the directory of the this file
+todo_file = os.path.join(basedir, 'todo_list.txt')     # Create the path to the to-do list file using the directory
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'todos.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-#continue to loop and display menu until user selects to exit the program
-while True:
-    print() # Add a couple of blank lines
-    print()
-    print("To-do list: ") # Print the title of the list
-    for todo in todo_list: # Loop through existing to-do items
-        print(todo)
+db.init_app(app)
 
-    # Print the menu
-    print() # Add a of blank lines
-    print("Actions:")
-    print("A - Add to-do item")
-    print("X - Exit")
-    choice = input("Enter your choice (A or X): ")
-    choice = choice.upper() #converts the choice to uppercase
+with app.app_context():
+    db.create_all()
 
-    #user selected 'a' or 'A' - To Add an item to the list
-    if choice == "A":
-        todo = input("Enter the to-do item: ")
-        todo_list.append(todo)
-        continue  #tells the program to go back to the start of the loop
+@app.before_request
+def load_data_to_g():
+    todos = Todo.query.all()
+    g.todos = todos 
+    g.todo = None
 
-    #user selected 'x' or 'X' to exit program
-    if choice == "X":
-        break #tells the program to exit the loop
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-    #user selected something else
-    print("Invalid choice")
+@app.route("/add", methods=["POST"])
+def add_todo():
+    # Get the data from the form
+    todo = Todo(
+        name=request.form["todo"],
+    )
+    # Add the new ToDo to the list
+    db.session.add(todo)
+    db.session.commit()
+    
+    # Add the new ToDo to the list
+    return redirect(url_for('index'))
+
+# Delete a ToDo
+@app.route('/remove/<int:id>', methods=['GET', "POST"])
+def remove_todo(id):
+    db.session.delete(Todo.query.filter_by(id=id).first())
+    db.session.commit()
+    return redirect(url_for('index'))
+
+if __name__ == "__main__":
+    app.run(debug=True)
